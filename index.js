@@ -1,183 +1,157 @@
-//Q1
-// function sumNumber(num1, num2) {
-//   const result = num1 + num2;
-//   return result;
-// }
+const http = require("http");
+const fs = require("fs");
+const server = http.createServer((req, res) => {
+  // Courses API
 
-// const num1 = 20;
-// const num2 = 10;
-// console.log(`The Sum ${num1} and ${num2} is: ` + sumNumber(num1, num2));
+  const { url, method } = req;
+  if (url === "/courses" && method === "GET") {
+    let courses = JSON.parse(fs.readFileSync("courses.json", "utf-8"));
+    res.end(JSON.stringify(courses));
+  } else if (url === "/courses" && method === "POST") {
+    let body;
+    req.on("data", (chunk) => {
+      body = JSON.parse(chunk);
+    });
+    req.on("end", () => {
+      let courses = JSON.parse(fs.readFileSync("courses.json", "utf-8"));
+      courses.push(body);
+      fs.writeFileSync("courses.json", JSON.stringify(courses));
+      res.end("added");
+    });
+  } else if (url.startsWith("/courses") && method === "PUT") {
+    let urlId = +url.split("/")[2];
+    let courses = JSON.parse(fs.readFileSync("courses.json", "utf8"));
+    let idx = courses.findIndex((x) => x.id === urlId);
+    let body;
+    req.on("data", (chunk) => {
+      body = JSON.parse(chunk);
+    });
+    req.on("end", () => {
+      courses[idx].course = body.course;
+      fs.writeFileSync("courses.json", JSON.stringify(courses));
+      res.end("updated");
+    });
+  } else if (url.startsWith("/courses") && method === "DELETE") {
+    let urlId = url.split("/")[2];
+    let courses = JSON.parse(fs.readFileSync("courses.json", "utf-8"));
+    let idx = courses.findIndex((x) => x.id === urlId);
+    let body;
+    req.on("data", (chunk) => {
+      body = JSON.parse(chunk);
+    });
+    req.on("end", () => {
+      courses.splice(idx, 1);
+      fs.writeFileSync("courses.json", JSON.stringify(courses));
+      res.end("deleted");
+    });
+  } else if (url.startsWith("/courses") && method === "GET") {
+    let urlId = +url.split("/")[2];
+    let courses = JSON.parse(fs.readFileSync("courses.json", "utf-8"));
+    let idx = courses.findIndex((x) => x.id === urlId);
+    res.end(JSON.stringify(courses[idx]));
 
-//Q2 *******************************************
-// function isPalindrome(str) {
-//   return str === str.split("").reverse().join("");
-// }
-// const str1 = "racecar";
-// console.log(`The String is isPalindrome : ` + isPalindrome(str1)); // Output: true
+    //Department API
+  } else if (url === "/department" && method === "GET") {
+    res.end(fs.readFileSync("department.json"));
+  } else if (url.startsWith("/department") && method === "GET") {
+    let urlId = +url.split("/")[2];
+    let department = JSON.parse(fs.readFileSync("department.json", "utf-8"));
+    let idx = department.findIndex((x) => x.id === urlId);
+    res.end(JSON.stringify(department[idx]));
+  } else if (url === "/department" && method === "POST") {
+    let department = JSON.parse(fs.readFileSync("department.json", "utf-8"));
+    let body;
+    req.on("data", (chunk) => {
+      body = JSON.parse(chunk);
+    });
+    req.on("end", () => {
+      department.push(body);
+      fs.writeFileSync("department.json", JSON.stringify(department));
+      res.end("Added");
+    });
+  } else if (url.startsWith("/department") && method === "PUT") {
+    let urlId = +url.split("/")[2];
+    let department = JSON.parse(fs.readFileSync("department.json", "utf-8"));
+    let idx = department.findIndex((x) => x.id === urlId);
+    let body;
+    req.on("data", (chunk) => {
+      body = JSON.parse(chunk);
+    });
+    req.on("end", () => {
+      department[idx].department = body.department;
+      fs.writeFileSync("department.json", JSON.stringify(department));
+      res.end("Updated");
+    });
+  } else if (url.startsWith("/department") && method === "DELETE") {
+    let urlId = +url.split("/")[2];
+    let department = JSON.parse(fs.readFileSync("department.json", "utf-8"));
+    let idx = department.findIndex((x) => x.id === urlId);
+    department.splice(idx, 1);
+    fs.writeFileSync("department.json", JSON.stringify(department));
+    res.end("deleted");
+  }
 
-// const str2 = "Hello, World!";
-// console.log(`The String is is't Palindrome : ` + isPalindrome(str2)); // Output: false
+  //Studens API
+  else if (url === "/students" && method === "GET") {
+    res.end(fs.readFileSync("students.json"));
+  } else if (url.startsWith("/students/") && method === "GET") {
+    let urlId = +url.split("/")[2];
+    let students = JSON.parse(fs.readFileSync("students.json", "utf-8"));
+    let idx = students.findIndex((x) => x.id === urlId);
+    res.end(JSON.stringify(students[idx]));
+  } else if (url === "/students" && method === "POST") {
+    let students = JSON.parse(fs.readFileSync("students.json", "utf-8"));
+    let body;
+    req.on("data", (chunk) => {
+      body = JSON.parse(chunk);
+    });
+    req.on("end", () => {
+      isUniqeEmail = students.find((x) => x.email === body.email);
+      if (isUniqeEmail === undefined) {
+        students.push(body);
+        fs.writeFileSync("students.json", JSON.stringify(students));
+        res.end("Added");
+      } else {
+        res.end("Email already in use..!");
+      }
+    });
+  } else if (url.startsWith("/students") && method === "PUT") {
+    let urlId = +url.split("/")[2];
+    let students = JSON.parse(fs.readFileSync("students.json", "utf-8"));
+    let idx = students.findIndex((x) => x.id === urlId);
+    let body;
+    req.on("data", (chunk) => {
+      body = JSON.parse(chunk);
+    });
+    req.on("end", () => {
+      students[idx] = body;
+      fs.writeFileSync("students.json", JSON.stringify(students));
+      res.end("Updated");
+    });
+  } else if (url.startsWith("/students") && method === "DELETE") {
+    let urlId = +url.split("/")[2];
+    let students = JSON.parse(fs.readFileSync("students.json", "utf-8"));
+    let idx = students.findIndex((x) => x.id === urlId);
+    students.splice(idx, 1);
+    fs.writeFileSync("students.json", JSON.stringify(students));
+    res.end("deleted");
+  } else if (url === "/studentsC" && method === "GET") {
+    let courses = JSON.parse(fs.readFileSync("courses.json", "utf-8"));
+    let students = JSON.parse(fs.readFileSync("students.json", "utf-8"));
+    // reading json files
+    let studentsWithCourses = students.map((student) => {
+      //edit every student and add his course by department ID
+      let id = student.departmentId;
+      let studentCourse = courses.find((c) => c.departmentId === id);
+      student.courses = studentCourse;
+      return student;
+    });
 
-//Q3 ********************************************
-// function reverseStr(str) {
-//   const string = str.split("").reverse().join("");
-//   return string;
-// }
-
-// const revStr = "Abdallah";
-// console.log(reverseStr(revStr));
-
-//Q4 ********************************************
-// function getEvenNum(numbers) {
-//   const evenNum = numbers.filter((num) => num % 2 == 0);
-//   return evenNum;
-// }
-// const numbers = [1, 2, 4, 5, 6, 7, 8, 9, 12];
-// console.log(getEvenNum(numbers));
-
-//Q5 ********************************************
-
-// function deepClone(originalObject) {
-//   const cobyObj = { ...originalObject };
-//   cobyObj.name = "Ali";
-//   cobyObj.age = 20;
-//   cobyObj.address.city = "Alx";
-//   console.log(cobyObj);
-// }
-
-// const originalObject = {
-//   name: "Ahmed",
-//   age: 30,
-//   hobbies: ["reading", "painting"],
-//   address: { street: "123 Main St", city: "Cairo" },
-// };
-
-// console.log(originalObject);
-// console.log(`deepCloneObj is :` + deepClone(originalObject));
-
-//Q6 ********************************************
-
-// function reverseString(str) {
-//   var reversedStr = "";
-
-//   for (var i = str.length - 1; i >= 0; i--) {
-//     reversedStr = reversedStr + str.charAt(i);
-//   }
-
-//   return reversedStr;
-// }
-
-// var string = "Ahmed !";
-// console.log(`Reverse a string without reverse () : ` + reverseString(string)); // Output: '! demhA'
-
-//Q7 ********************************************
-
-// function sumArray(numbers) {
-//   let sum = 0;
-
-//   for (let i = 0; i < numbers.length; i++) {
-//     sum += numbers[i];
-//   }
-
-//   return sum;
-// }
-
-// const numArrays = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-// const totalSum = sumArray(numArrays);
-// console.log(totalSum); // Output: 55
-
-//Q8 ********************************************
-
-// function factorial(n) {
-//   if (n === 0 || n === 1) {
-//     return 1;
-//   } else {
-//     return n * factorial(n - 1);
-//     // var result = 1;
-
-//     // for (var i = 2; i <= n; i++) {
-//     //   result *= i;
-//     // }
-
-//     // return result;
-//   }
-// }
-
-// const num = 5;
-// const factorialNum = factorial(num);
-// console.log(factorialNum);
-
-//Q9 ********************************************
-
-// function calcAvg(numbers){
-//     if (numbers.length === 0) {
-//         return 0;
-//       }
-
-//       let sum=0
-//       for(let i=0 ;i<numbers.length;i++){
-//         sum+=numbers[i];
-//       }
-//       var average = sum / numbers.length;
-//       return average;
-
-// }
-
-// const numArrays = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-// const numAvg = calcAvg(numArrays);
-// console.log(numAvg); // Output: 5.5
-
-//Q10 ********************************************
-
-// function findIndex(arr, element) {
-//     for (var i = 0; i < arr.length; i++) {
-//       if (arr[i] === element) {
-//         return i;
-//       }
-//     }
-
-//     return -1;
-//   }
-
-//   const numbersArray = [1, 2, 3, 4, 5];
-//   const elementToFind = 4;
-// //   const elementToFind = 6; //Output:-1
-//   const index = findIndex(numbersArray, elementToFind);
-//   console.log(index); // Output: 3
-
-//Q11 ********************************************
-
-// function isInt(number){
-//     return Number.isInteger(number)
-// }
-// const number = 12.0;
-// console.log(isInt(number)); // Output: true
-
-//Q12 ********************************************
-
-// function calcAgeInDays(age) {
-//   const ageInDays = age * 365;
-//   return ageInDays;
-// }
-
-// const age = 23;
-// const ageInDays = calcAgeInDays(age);
-// console.log(ageInDays); // Output: 8395
-
-//Q13 ********************************************
-
-/* A callback function is a function that is called at the end of another function, 
-allowing the programmer to define the desired behavior that 
-should happen after a particular operation 
-or event,used in asynchronous programming.*/
-
-// function greet(name) {
-//   console.log(`Hello, ${name}!`);
-// }
-
-// function processName(name, callback) {
-//   const processedName = name.toUpperCase();
-//   callback(processedName);
-// }
-// const name = "Jon";
-// processName(name, greet); //Output: Hello, JON!
+    res.end(JSON.stringify(studentsWithCourses));
+  } else {
+    return res.end(`invalid url ${req.url} with method ${req.method}`);
+  }
+});
+server.listen(3000, () => {
+  console.log("server is running...");
+});
